@@ -212,6 +212,124 @@ Also, `.ORIG x3000` is an assembler directive (like a macro). It tells the assem
 > "Start putting this program into memory at address x3000."
 
 
+# Procedure
+
+A CPU at its core is a loop. It repeatedly does 5 things:
+
+1. Fetch instruction from memory whose address is given by the PC register.
+2. Move PC to the next instruction.
+3. Decode the opcode.
+4. Execute the decoded instruction using the parameters supplied with the instruction.
+5. Repeat.
+
+This is a fetch-decode-execute cycle or an Instruction cycle.
+
+Let me elaborate on each process now.
+
+## 1. Fetch
+
+```c
+uint16_t instr = mem_read(reg[R_PC]++);
+```
+
+Suppose:
+
+```text
+R_PC = 0x3000
+```
+
+Remember: PC = Program Counter.
+
+It contains the address of the instruction we are going to execute. So:
+
+```text
+mem_read(reg[R_PC])
+```
+
+means: Go to the memory address `0x3000` and give me whatever is stored there.
+
+## 2. Using `mem_read(reg[R_PC]++)`
+
+```c
+mem_read(reg[R_PC]++);
+```
+
+means: read from memory `0x3000` and increment it by 1 so it becomes:
+
+```text
+0x3001
+```
+
+We can increment PC because normally the next instruction is stored in the next memory location. So that's how the CPU naturally moves through a program.
+
+There is an important thing about Loops and jumps I want to clarify at CPU level.
+
+Look at the assembly example again:
+
+```asm
+AND R0, R0, 0
+LOOP
+ADD R0, R0, 1
+ADD R1, R0, -10
+BRn LOOP
+```
+
+`LOOP` here represents a point in memory. It points to the `ADD R0, R0, 1` instruction in memory.
+
+Now at the end of the second-last instruction, there is `BRn LOOP`.
+
+`BRn` represents `Branch If Negative`.
+
+`BR` is Branch -> change `PC` to another location.
+
+`n` means only do it if the Negative condition flag is set.
+
+This tells the CPU not to continue the instruction by pointing PC to the next instruction memory address, but instead go back to `LOOP`.
+
+So the cycle can be:
+
+```text
+PC = 0x3005 -> fetch BRn -> condition is negative -> PC = 0x3002
+```
+
+This is how loops work at CPU level. All that happens is just:
+
+```text
+Change the PC register to somewhere else.
+```
+
+## 3. Getting the OPCODE
+
+After fetching the instruction, we get a 16-bit instruction.
+
+We need to tell the CPU what kind of instruction it is. For that, as we have decided on the format of instructions of LC-3, we know that the first 4 bits of the instruction are the opcode and the remaining 12 bits are the parameters of it.
+
+```c
+uint16_t op = instr >> 12;
+```
+
+We do `instr >> 12` because, for example:
+
+```text
+instr = 0001 000 000 1 00001
+```
+
+The first four bits are `0001`.
+
+Shifting the whole thing 12 bits towards the right gives:
+
+```text
+0000 0000 0000 0001
+```
+
+So using the bitwise right shift operator, we extract the opcode.
+
+## 4. Executing the instruction
+
+The instructions are then executed within the while loop through the switch statement.
+
+Also note: we have a variable `running` which is set to 1. This will make the while
+
 ## Learning Resource
 
 This project is being built while following the LC-3 VM tutorial by Justin Meiners:

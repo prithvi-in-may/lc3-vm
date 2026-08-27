@@ -1,8 +1,9 @@
+#include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #define MEMORY_MAX (1 << 16)
-
-uint16_t memory[MEMORY_MAX];  /* 65536 locations */
+uint16_t memory[MEMORY_MAX];
 
 enum
 {
@@ -14,35 +15,104 @@ enum
     R_R5,
     R_R6,
     R_R7,
-    R_PC, /* program counter */
+    R_PC,
     R_COND,
-    R_COUNT // Not a register, but tells the count of total registers.
+    R_COUNT
+};
+
+uint16_t reg[R_COUNT];
+
+enum
+{
+    FL_POS = 1 << 0,
+    FL_ZRO = 1 << 1,
+    FL_NEG = 1 << 2,
 };
 
 enum
 {
-    OP_BR = 0, /* branch */
-    OP_ADD,    /* add  */
-    OP_LD,     /* load */
-    OP_ST,     /* store */
-    OP_JSR,    /* jump register */
-    OP_AND,    /* bitwise and */
-    OP_LDR,    /* load register */
-    OP_STR,    /* store register */
-    OP_RTI,    /* unused */
-    OP_NOT,    /* bitwise not */
-    OP_LDI,    /* load indirect */
-    OP_STI,    /* store indirect */
-    OP_JMP,    /* jump */
-    OP_RES,    /* reserved (unused) */
-    OP_LEA,    /* load effective address */
-    OP_TRAP    /* execute trap */
-}; // necessary to give names to the opcode numbers.
+    OP_BR = 0,
+    OP_ADD,
+    OP_LD,
+    OP_ST,
+    OP_JSR,
+    OP_AND,
+    OP_LDR,
+    OP_STR,
+    OP_RTI,
+    OP_NOT,
+    OP_LDI,
+    OP_STI,
+    OP_JMP,
+    OP_RES,
+    OP_LEA,
+    OP_TRAP
+};
 
-int main() {
+int main(int argc, const char* argv[])
+{
+    if (argc < 2)
+    {
+        printf("lc3 [image-file1] ...\n");
+        exit(2);
+    }
 
-  uint16_t regs[R_COUNT]; // Also: uint16_t regs[10], so 10 slots are indexed starting from 0, 1, ... , 9 
+    for (int j = 1; j < argc; ++j)
+    {
+        if (!read_image(argv[j]))
+        {
+            printf("failed to load image: %s\n", argv[j]);
+            exit(1);
+        }
+    }
 
+    reg[R_COND] = FL_ZRO;
 
+    enum { PC_START = 0x3000 };
+    reg[R_PC] = PC_START;
 
+    int running = 1;
+    while (running)
+    {
+        uint16_t instr = mem_read(reg[R_PC]++);
+        uint16_t op = instr >> 12;
+
+        switch (op)
+        {
+            case OP_ADD:
+                break;
+            case OP_AND:
+                break;
+            case OP_NOT:
+                break;
+            case OP_BR:
+                break;
+            case OP_JMP:
+                break;
+            case OP_JSR:
+                break;
+            case OP_LD:
+                break;
+            case OP_LDI:
+                break;
+            case OP_LDR:
+                break;
+            case OP_LEA:
+                break;
+            case OP_ST:
+                break;
+            case OP_STI:
+                break;
+            case OP_STR:
+                break;
+            case OP_TRAP:
+                break;
+            case OP_RES:
+            case OP_RTI:
+            default:
+                break;
+        }
+    }
+
+    return 0;
 }
