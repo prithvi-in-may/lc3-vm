@@ -330,8 +330,17 @@ The instructions are then executed within the while loop through the switch stat
 
 Also note: we have a variable `running` which is set to 1. This will make the while
 
+# Implementing Instructions 
+
+## ADD 
+ADD has two modes: Immediate and Register mode. In Immediate mode, the two numbers to be added are embedded in the same instruction. It offers less space for the second number compared to Register mode.
+
+In Immediate mode, only 5 bits are allowed for the second number, but since it is going to be added to a 16-bit number, this function extends it by adding 0s to match 16 bits. “Sign extension corrects this problem by filling in 0s for positive numbers and 1s for negative numbers, so that the original values are preserved.”
+
+
 ## Learning Resource
 
 This project is being built while following the LC-3 VM tutorial by Justin Meiners:
 
 [LC-3 VM](https://www.jmeiners.com/lc3-vm/)
+[Project document](https://www.jmeiners.com/lc3-vm/supplies/lc3-isa.pdf)

@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 #define MEMORY_MAX (1 << 16)
 uint16_t memory[MEMORY_MAX];
+uint16_t sign_extend(uint16_t x, int bit_count);
+void update_flags(uint16_t r);
 
 enum
 {
@@ -25,7 +28,7 @@ uint16_t reg[R_COUNT];
 enum
 {
     FL_POS = 1 << 0,
-    FL_ZRO = 1 << 1,
+    FL_ZERO = 1 << 1,
     FL_NEG = 1 << 2,
 };
 
@@ -115,4 +118,24 @@ int main(int argc, const char* argv[])
     }
 
     return 0;
+}
+// bit_count tells how many bits the original number uses. 0xFFFF in binary represents 1111 1111 1111 1111
+uint16_t sign_exten(uint16_t x, int bit_count) {
+  if ((x >> (bit_count - 1) & 1)) { 
+    x |= (0xFFFF << bit_count);
+  };
+  return x;
+}
+
+// For updating condition flags. r is the index of register in which last operation took place.
+// Last operation -> Result stored in register -> Pass the register index to this function -> access the value -> Check its nature -> update condition flags
+void update_flags(uint16_t r) {
+  if (reg[r] == 0) {
+    reg[R_COND] == FL_ZERO;
+  } else if (reg[r] >> 15) // Checks whether the leftmost bit indicates negate as 1.
+  {
+    reg[R_COND] == FL_ZERO;
+  } else {
+    reg[R_COND] == FL_POS;
+  }
 }
