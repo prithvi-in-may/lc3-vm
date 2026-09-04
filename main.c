@@ -69,7 +69,7 @@ int main(int argc, const char* argv[])
         }
     }
 
-    reg[R_COND] = FL_ZRO;
+    reg[R_COND] = FL_ZERO;
 
     enum { PC_START = 0x3000 };
     reg[R_PC] = PC_START;
@@ -83,7 +83,23 @@ int main(int argc, const char* argv[])
         switch (op)
         {
             case OP_ADD:
-                break;
+        {
+          // extracting destination register (DR) 
+          uint16_t r0 = (instr >> 9) & 0x7;
+          // extracting first operand (SR1) 
+          uint16_t r1 = (instr >> 6) & 0x7;
+          // check for immediate mode (imm5) 
+          uint16_t imm_flag = (instr >> 5) & 0x1;
+
+          if (imm_flag) {
+            uint16_t imm5 = sign_extend(instr & 0x1f, 5);
+            reg[r0] = reg[r1] + imm5; 
+          } else {
+            uint16_t r2 = instr & 0x7;
+            reg[r0] = reg[r1] + reg[r2];
+          }
+          update_flags(r0);
+        }
             case OP_AND:
                 break;
             case OP_NOT:
@@ -97,7 +113,15 @@ int main(int argc, const char* argv[])
             case OP_LD:
                 break;
             case OP_LDI:
-                break;
+        {
+          // Destination Register 
+          uint16_t r0 = (instr >> 9) & 0x7;
+          // PCoffset9
+          uint16_t PC_offset = sign_extend(instr * 0x1FF, 9);
+          // Locate and retrieve data from the memory address by adding PC_offset to current PC and load it in DR 
+          reg[r0] = mem_read(mem_read(reg[R_PC] + PC_offset));
+          update_flags(r0);
+        }
             case OP_LDR:
                 break;
             case OP_LEA:
@@ -139,3 +163,4 @@ void update_flags(uint16_t r) {
     reg[R_COND] == FL_POS;
   }
 }
+
