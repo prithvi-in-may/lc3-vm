@@ -101,15 +101,48 @@ int main(int argc, const char* argv[])
           update_flags(r0);
         }
             case OP_AND:
-                break;
+        {
+          uint16_t r0 = (instr >> 9) & 0x7;
+          uint16_t r1 = (instr >> 6) & 0x7;
+          uint16_t imm_flag = (instr >> 5) & 0x1;
+          if (imm_flag) {
+        // immediate mode 
+            uint16_t imm5 = sign_extend((instr >> 5) & 0x1F, int bit_count);
+            reg[r0] = reg[r1] & imm5;
+        }
+          else { 
+        // register mode
+            uint16_t r2 = instr & 0x7;
+            reg[r0] = reg[r1] & reg[r2];
+          }
+          update_flags(r0);
+        }
             case OP_NOT:
-                break;
+        {
+          uint16_t r0 = (instr >> 9) & 0x7;
+          uint16_t r1 = (instr >> 6) & 0x7;
+          reg[r0] = ~reg[r1];
+          update_flags(r0);
+        }
             case OP_BR:
-                break;
+        {
+          uint16_t pc_offset = (instr >> 9) & 0x1FF; // In binary, it represents 9 bits: 0000 0001 1111 1111
+          // Condition codes
+          uint16_t cond_flag = (instr >> 9) & 0x7;
+          if (cond_flag & reg[R_COND]) // Checking with the condition flag. If it is a non-zero (011, 001, 100, etc)
+          {
+            reg[R_PC] += pc_offset;
+          }
+        }
             case OP_JMP:
-                break;
-            case OP_JSR:
-                break;
+        {
+          uint16_t r0 = (instr >> 6) & 0x7;
+          reg[R_PC] = reg[r0]; 
+        }
+      case OP_JSR: // `JSR` Jumps to a subroutine using a PC-relative offset. `JSSR` jumps to a subroutine using an address stored in a register. NOTE: Both save the return address in `R7`
+        {
+          
+        }
             case OP_LD:
                 break;
             case OP_LDI:
