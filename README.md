@@ -337,6 +337,65 @@ ADD has two modes: Immediate and Register mode. In Immediate mode, the two numbe
 
 In Immediate mode, only 5 bits are allowed for the second number, but since it is going to be added to a 16-bit number, this function extends it by adding 0s to match 16 bits. “Sign extension corrects this problem by filling in 0s for positive numbers and 1s for negative numbers, so that the original values are preserved.”
 
+## LDI instruction
+
+LDI means "load indirect". Data is retrieved from a given memory address through an offset.
+
+We know that LC-3 instructions are of 16 bits. LDI instruction constitutes of 3 fields: OPCODE (12 to 15), Destination Register (9 to 11) and finally PCoffset9 (0 to 8). PCoffset9 field works by providing an offset for the PC to calculate the address where the data is supposed to be retrieved from. This is also a reason why we cannot directly put the address because the remaining field after OPCODE and DR is only of 9 bits whereas the address must be of 16 bits, so PC is used as a reference point for finding the address.
+
+After PC is incremented and it points to the next instruction, PCoffset9 gives an offset for `PCoffset9` locations away starting from the PC to find the memory address containing the address I actually want.
+
+The offset is calculated by the assembler and not the programmer.
+
+## Branch instruction (Conditional Branch)
+
+Branch instruction means "Look at the condition codes (N,Z,P). If the condition I asked for is true, Jump to a different location."
+
+N -> Negative
+P -> Positive
+Z -> Zero
+
+These are set through update_flags function in the code and represent the nature of the last instruction result.
+
+In assembly, it can be represented as:
+
+```asm
+BRz LOOP
+```
+
+means branch if the result was Zero.
+
+## Jump Instruction (`JMP`)
+
+`JMP` doesn't store destination address in the instruction. It stores the number of a register whose contents contains the destination address.
+
+Example:
+
+```asm
+JMP BaseR
+```
+
+means: Jump to the memory address stored inside BaseR.
+
+> `RET` is a special case of `JMP`. When a function/subroutine is called with `JSR`, LC-3 stores the return address in `R7` register. So, `RET` simply jumps back to that address.
+
+For example:
+
+```asm
+JSR FUNC ; Calling FUNC function
+ADD R1, R1, #1 ; <- Return here after the FUNC function finishes
+
+FUNC:
+  ADD R2, R2, #5
+  RET
+```
+
+So `JSR FUNC` is executed, LC-3:
+
+1. Saves address of next instruction `ADD R1, R1, #1` into `R7`
+2. Jumps to `FUNC`
+3. `FUNC` eventually executes `RET`
+4. `RET` does `PC = R7`
 
 ## Learning Resource
 
