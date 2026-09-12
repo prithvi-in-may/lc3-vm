@@ -199,7 +199,7 @@ HELLO_STR .STRINGZ "Hello World!"
 .END
 ```
 
-The CPU doesn't understand English words. So we need an Assembler (which I will write later for LC3-VM and make example programs in it) which converts this assembly instruction into binary.
+The CPU doesn't understand English words. So we need an Assembler, which converts this assembly instruction into binary.
 
 Also notice: Each line is of different length, which you might think of as a contradiction because we learnt that:
 
@@ -396,6 +396,72 @@ So `JSR FUNC` is executed, LC-3:
 2. Jumps to `FUNC`
 3. `FUNC` eventually executes `RET`
 4. `RET` does `PC = R7`
+
+# Trap Routines
+
+Three mechanisms are used for shifting focus when the CPU stops its current program and transfers control somewhere else, namely:
+
+1. **Traps:** The program deliberately asks for OS help and is caused intentionally by the program. For example:
+
+   ```text
+   TRAP x20
+   ```
+
+   means: execute the OS routine for keyboard input.
+
+2. **Exceptions:** It is caused by the CPU when it detects an unusual error/condition while executing an instruction. For example: division by 0, invalid instruction, etc.
+
+3. **Interrupts:** It is generally caused by something outside the current instruction execution stream, often by hardware. For example: timer interrupt, keyboard interrupt, disk operation completion, etc.
+
+In LC-3, each trap code is assigned a trap code (similar to OPCODE).
+
+## PUTS
+
+`PUTS` reads characters from LC-3 memory starting at the register stored in `R0`, and prints them until it finds `0x0000` (which is a null terminator in an LC-3 string).
+
+# Loading Programs
+
+The first 16 bytes of the file tells you where to put that specific program in which memory address. That is why the emulator later does:
+
+```c
+reg[R_PC] = 0x3000;
+```
+
+# Memory-Mapped Registers
+
+Our LC-3 currently has 2 things:
+
+1. CPU registers
+2. Memory
+
+The CPU registers are easy to access: `R0`, `R1`, `R2` ... `PC`, `COND`. The memory can be accessed as: `memory[0x0000]`, `memory[0x0001]`, ... `memory[0xFFFF]`.
+
+We face a problem with our LC-3 communicating with the keyboard. How does the LC-3 program communicate with the keyboard?
+
+We can solve this by pretending that the keyboard is a memory. So we reserve two memory addresses for the keyboard:
+
+```text
+0xFE00 → keyboard status
+0xFE02 → keyboard data
+```
+
+These are called **memory-mapped registers**. Now the CPU can interact with the keyboard by accessing those addresses. So we need to reserve those addresses specially for the keyboard, otherwise when accessing them through `memory[0xFE00]` would result in just another ordinary array and wouldn't represent our keyboard.
+
+So instead of letting the emulator directly access `memory[address]`, we have `mem_read(address)` and `mem_write(address, value)`. Now whenever the LC-3 wants to access or read memory, these functions will be used which will also intercept and check whether its a special hardware address or not.
+
+> It may be valid to ask: why not use `getc()`? But then that would make the program regularly check for keyboard input, which will cost an unnecessary amount of resources. This is called `polling`.
+
+# Compile and Run 
+
+````
+```
+gcc main.c -o main
+```
+
+Run one of the `.obj` file: 
+```
+main ./rogue.obj
+```
 
 ## Learning Resource
 
