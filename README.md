@@ -453,7 +453,6 @@ So instead of letting the emulator directly access `memory[address]`, we have `m
 
 # Compile and Run 
 
-````
 ```
 gcc main.c -o main
 ```
